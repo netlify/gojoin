@@ -3,7 +3,11 @@ package cmd
 import (
 	"log"
 
-	"github.com/rybit/config_example/conf"
+	"os"
+
+	"github.com/netlify/netlify-subscriptions/api"
+	"github.com/netlify/netlify-subscriptions/conf"
+	"github.com/netlify/netlify-subscriptions/models"
 	"github.com/spf13/cobra"
 )
 
@@ -31,5 +35,18 @@ func run(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to configure logging: " + err.Error())
 	}
 
-	logger.Infof("Starting with config: %+v", config)
+	logger.Infof("Connecting to DB")
+	db, err := models.Connect(&config.DBConfig)
+	if err != nil {
+		logger.Fatal("Failed to connect to db: " + err.Error())
+	}
+
+	logger.Info("Starting API on port %d", config.Port)
+	a := api.NewAPI(config, db)
+	err = a.Serve()
+	if err != nil {
+		logger.WithError(err).Error("Error while running API: %v", err)
+		os.Exit(1)
+	}
+	logger.Info("API Shutdown")
 }

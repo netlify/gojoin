@@ -1,4 +1,4 @@
-package: github.com/rybit/config_example
+package: github.com/netlify/netlify-subscriptions
 import:
 - package: github.com/Sirupsen/logrus
   version: v0.10.0
@@ -6,3 +6,15 @@ import:
 - package: github.com/spf13/viper
 - package: github.com/benoitmasson/viper
   version: nested-maps
+- package: github.com/rs/cors
+  version: v1.0
+- package: github.com/guregu/kami
+  version: v2.1.0
+- package: github.com/pborman/uuid
+  version: v1.0
+- package: github.com/dgrijalva/jwt-go
+  version: v3.0.0
+- package: github.com/stretchr/testify
+  version: v1.1.4
+  subpackages:
+  - assert
