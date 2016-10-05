@@ -8,8 +8,10 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/netlify/netlify-subscriptions/conf"
 	"time"
+
+	"github.com/netlify/netlify-subscriptions/conf"
+	"github.com/pborman/uuid"
 )
 
 // Namespace puts all tables names under a common
@@ -48,12 +50,21 @@ func tableName(defaultName string) string {
 	return defaultName
 }
 
+func NewSubscription(userID, userEmail, plan string) *Subscription {
+	return &Subscription{
+		ID:        uuid.NewRandom().String(),
+		UserID:    userID,
+		UserEmail: userEmail,
+		Plan:      plan,
+	}
+}
+
 type Subscription struct {
-	ID        string
-	UserID    string
-	UserEmail string
-	RemoteID  string
-	Plan      string
+	ID        string `gorm:"unique;primary"`
+	UserID    string `gorm:"user_id"`
+	UserEmail string `gorm:"user_email"`
+	RemoteID  string `gorm:"remote_id"`
+	Plan      string `gorm:"not null"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

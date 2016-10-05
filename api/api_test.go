@@ -34,6 +34,9 @@ var api *API
 var serverURL string
 var client *http.Client
 
+var testUserID = "joker"
+var testUserEmail = "joker@dc.com"
+
 func TestMain(m *testing.M) {
 	f, err := ioutil.TempFile("", "test-db")
 	if err != nil {
@@ -69,7 +72,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestTokenExtraction(t *testing.T) {
-	tokenString := testToken(t, "joker", "secret", true)
+	tokenString := testToken(t, testUserID, testUserEmail, config.JWTSecret, true)
 	r, _ := http.NewRequest("GET", "http://doesnotmatter", nil)
 	r.Header.Add("Authorization", "Bearer "+tokenString)
 
@@ -78,7 +81,7 @@ func TestTokenExtraction(t *testing.T) {
 	if assert.NotNil(t, token) {
 		assert.Nil(t, token.Claims.Valid())
 		outClaims := token.Claims.(*JWTClaims)
-		assert.Equal(t, "joker", outClaims.Name)
+		assert.Equal(t, "joker", outClaims.ID)
 
 		foundAdmin := false
 		for _, g := range outClaims.Groups {
@@ -93,8 +96,12 @@ func TestTokenExtraction(t *testing.T) {
 	}
 }
 
+func TestBadAuthHeader(t *testing.T) {
+	// TODO
+}
+
 func TestMiddleware(t *testing.T) {
-	tokenString := testToken(t, "joker", config.JWTSecret, true)
+	tokenString := testToken(t, testUserID, testUserEmail, config.JWTSecret, true)
 	r, _ := http.NewRequest("GET", serverURL+"/", nil)
 	r.Header.Add("Authorization", "Bearer "+tokenString)
 
@@ -146,7 +153,7 @@ func request(t *testing.T, method, path string, body []byte, isAdmin bool) *http
 	} else {
 		r, _ = http.NewRequest(method, serverURL+path, nil)
 	}
-	tokenString := testToken(t, "joker", config.JWTSecret, isAdmin)
+	tokenString := testToken(t, testUserID, testUserEmail, config.JWTSecret, isAdmin)
 	r.Header.Add("Authorization", "Bearer "+tokenString)
 
 	rsp, err := client.Do(r)
@@ -169,9 +176,10 @@ func extractPayload(t *testing.T, rsp *http.Response, payload interface{}) {
 	}
 }
 
-func testToken(t *testing.T, name, secret string, isAdmin bool) string {
+func testToken(t *testing.T, name, email, secret string, isAdmin bool) string {
 	claims := &JWTClaims{
-		Name: name,
+		ID:    name,
+		Email: email,
 	}
 	claims.ExpiresAt = time.Now().Add(time.Hour).Unix()
 

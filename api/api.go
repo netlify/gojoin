@@ -28,7 +28,8 @@ type API struct {
 
 type JWTClaims struct {
 	jwt.StandardClaims
-	Name   string
+	ID     string
+	Email  string
 	Groups []string
 }
 
@@ -64,6 +65,8 @@ func (a API) Serve() error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", a.port), a.handler)
 }
 
+// TODO log handler for completion
+
 func (a API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	reqID := uuid.NewRandom().String()
 	log := a.log.WithFields(logrus.Fields{
@@ -86,23 +89,23 @@ func (a API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http.
 	if token == nil {
 		log.Info("Attempted to make unauthenticated request")
 		return nil
-	} else {
-		claims := token.Claims.(*JWTClaims)
-		adminFlag := false
-		for _, g := range claims.Groups {
-			if g == a.config.AdminGroupName {
-				adminFlag = true
-				break
-			}
-		}
-		log = log.WithFields(logrus.Fields{
-			"is_admin": adminFlag,
-			"user_id":  claims.Name,
-		})
-		ctx = setAdminFlag(ctx, adminFlag)
-
 	}
 
+	claims := token.Claims.(*JWTClaims)
+	adminFlag := false
+	for _, g := range claims.Groups {
+		if g == a.config.AdminGroupName {
+			adminFlag = true
+			break
+		}
+	}
+	log = log.WithFields(logrus.Fields{
+		"is_admin": adminFlag,
+		"user_id":  claims.ID,
+	})
+	ctx = setAdminFlag(ctx, adminFlag)
+
+	ctx = setToken(ctx, token)
 	ctx = setLogger(ctx, log)
 	return ctx
 }

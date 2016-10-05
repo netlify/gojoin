@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/netlify/netlify-subscriptions/conf"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/net/context"
 )
@@ -18,6 +19,7 @@ const (
 	loggerKey    = "app_logger"
 	reqIDKey     = "request_id"
 	adminFlagKey = "admin_flag"
+	tokenKey     = "token"
 )
 
 func setStartTime(ctx context.Context, startTime time.Time) context.Context {
@@ -92,4 +94,12 @@ func setDB(ctx context.Context, db *gorm.DB) context.Context {
 }
 func getDB(ctx context.Context) *gorm.DB {
 	return ctx.Value(dbKey).(*gorm.DB)
+}
+
+func getClaims(ctx context.Context) *JWTClaims {
+	return ctx.Value(tokenKey).(*jwt.Token).Claims.(*JWTClaims)
+}
+
+func setToken(ctx context.Context, token *jwt.Token) context.Context {
+	return context.WithValue(ctx, tokenKey, token)
 }
