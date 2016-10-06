@@ -18,3 +18,5 @@ import:
   version: v1.1.4
   subpackages:
   - assert
+- package: github.com/stripe/stripe-go
+  version: v18.1.0

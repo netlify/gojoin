@@ -13,6 +13,7 @@ type Config struct {
 	Port           int64         `json:"port"`
 	JWTSecret      string        `json:"jwt_secret"`
 	AdminGroupName string        `json:"admin_group_name"`
+	StripeKey      string        `json:"stripe_key"`
 	LogConfig      LoggingConfig `json:"log"`
 	DBConfig       DBConfig      `json:"db"`
 }

@@ -61,7 +61,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	api = NewAPI(config, db)
+	api = NewAPI(config, db, errorProxy{})
 	server := httptest.NewServer(api.handler)
 	defer server.Close()
 
@@ -146,10 +146,15 @@ func TestGetHello(t *testing.T) {
 // utilities
 // ------------------------------------------------------------------------------------------------
 
-func request(t *testing.T, method, path string, body []byte, isAdmin bool) *http.Response {
+func request(t *testing.T, method, path string, body interface{}, isAdmin bool) *http.Response {
 	var r *http.Request
 	if body != nil {
-		r, _ = http.NewRequest(method, serverURL+path, bytes.NewBuffer(body))
+		b, err := json.Marshal(body)
+		if err != nil {
+			assert.FailNow(t, "failed to make request: "+err.Error())
+		}
+
+		r, _ = http.NewRequest(method, serverURL+path, bytes.NewBuffer(b))
 	} else {
 		r, _ = http.NewRequest(method, serverURL+path, nil)
 	}

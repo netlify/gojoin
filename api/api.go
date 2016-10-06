@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,18 +13,19 @@ import (
 	"github.com/guregu/kami"
 	"github.com/pborman/uuid"
 	"github.com/rs/cors"
-	"golang.org/x/net/context"
 
 	"github.com/jinzhu/gorm"
 	"github.com/netlify/netlify-subscriptions/conf"
+	"github.com/zenazn/goji/web/mutil"
 )
 
 type API struct {
-	log     *logrus.Entry
-	config  *conf.Config
-	port    int64
-	handler http.Handler
-	db      *gorm.DB
+	log        *logrus.Entry
+	config     *conf.Config
+	port       int64
+	handler    http.Handler
+	db         *gorm.DB
+	payerProxy payerProxy
 }
 
 type JWTClaims struct {
@@ -35,21 +37,25 @@ type JWTClaims struct {
 
 var bearerRegexp = regexp.MustCompile(`^(?:B|b)earer (\S+$)`)
 
-func NewAPI(config *conf.Config, db *gorm.DB) *API {
+func NewAPI(config *conf.Config, db *gorm.DB, proxy payerProxy) *API {
 	api := &API{
-		log:    logrus.WithField("component", "api"),
-		config: config,
-		port:   config.Port,
-		db:     db,
+		log:        logrus.WithField("component", "api"),
+		config:     config,
+		port:       config.Port,
+		db:         db,
+		payerProxy: proxy,
 	}
 
 	k := kami.New()
+	k.LogHandler = logCompleted
+
 	k.Use("/", api.populateConfig)
+
 	k.Get("/", hello)
 	k.Get("/subscriptions", listSubs)
-	k.Post("/subscription", createSub)
-	k.Get("/subscriptions/:id", viewSub)
-	k.Delete("/subscriptions/:id", deleteSub)
+	k.Get("/subscriptions/:type", viewSub)
+	k.Put("/subscriptions/:type", createOrModSub)
+	k.Delete("/subscriptions/:type", deleteSub)
 
 	corsHandler := cors.New(cors.Options{
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE"},
@@ -61,24 +67,36 @@ func NewAPI(config *conf.Config, db *gorm.DB) *API {
 	return api
 }
 
-func (a API) Serve() error {
+func (a *API) Serve() error {
 	return http.ListenAndServe(fmt.Sprintf(":%d", a.port), a.handler)
 }
 
-// TODO log handler for completion
+func logCompleted(ctx context.Context, wp mutil.WriterProxy, r *http.Request) {
+	log := getLogger(ctx).WithField("status", wp.Status())
 
-func (a API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
+	start := getStartTime(ctx)
+	if start != nil {
+		log = log.WithField("duration", time.Since(*start))
+	}
+
+	log.Infof("Completed request %s. path: %s, method: %s, status: %d", getRequestID(ctx), r.URL.Path, r.Method, wp.Status())
+}
+
+func (a *API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	reqID := uuid.NewRandom().String()
 	log := a.log.WithFields(logrus.Fields{
 		"request_id": reqID,
 		"method":     r.Method,
 		"path":       r.URL.Path,
 	})
+	log.Info("Started request")
 
 	ctx = setRequestID(ctx, reqID)
 	ctx = setStartTime(ctx, time.Now())
 	ctx = setConfig(ctx, a.config)
 	ctx = setDB(ctx, a.db)
+
+	ctx = setPayerProxy(ctx, a.payerProxy)
 
 	token, err := extractToken(a.config.JWTSecret, r)
 	if err != nil {

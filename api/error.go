@@ -28,14 +28,6 @@ func writeError(w http.ResponseWriter, code int, msg string, args ...interface{}
 	return err
 }
 
-func internalServerError(w http.ResponseWriter, msg string, args ...interface{}) *HTTPError {
-	return writeError(w, http.StatusInternalServerError, msg, args...)
-}
-
 func notFoundError(w http.ResponseWriter, msg string, args ...interface{}) *HTTPError {
 	return writeError(w, http.StatusNotFound, msg, args...)
-}
-
-func unauthorizedError(w http.ResponseWriter, msg string, args ...interface{}) *HTTPError {
-	return writeError(w, http.StatusUnauthorized, msg, args...)
 }

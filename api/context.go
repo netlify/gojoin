@@ -12,14 +12,15 @@ import (
 )
 
 const (
-	dbKey        = "db"
-	startTimeKey = "start_time"
-	versionKey   = "app_version"
-	configKey    = "app_config"
-	loggerKey    = "app_logger"
-	reqIDKey     = "request_id"
-	adminFlagKey = "admin_flag"
-	tokenKey     = "token"
+	dbKey         = "db"
+	startTimeKey  = "start_time"
+	versionKey    = "app_version"
+	configKey     = "app_config"
+	loggerKey     = "app_logger"
+	reqIDKey      = "request_id"
+	adminFlagKey  = "admin_flag"
+	tokenKey      = "token"
+	payerProxyKey = "payer_proxy"
 )
 
 func setStartTime(ctx context.Context, startTime time.Time) context.Context {
@@ -102,4 +103,15 @@ func getClaims(ctx context.Context) *JWTClaims {
 
 func setToken(ctx context.Context, token *jwt.Token) context.Context {
 	return context.WithValue(ctx, tokenKey, token)
+}
+
+func setPayerProxy(ctx context.Context, proxy payerProxy) context.Context {
+	return context.WithValue(ctx, payerProxyKey, proxy)
+}
+func getPayerProxy(ctx context.Context) payerProxy {
+	obj := ctx.Value(payerProxyKey)
+	if obj == nil {
+		return &errorProxy{}
+	}
+	return obj.(payerProxy)
 }

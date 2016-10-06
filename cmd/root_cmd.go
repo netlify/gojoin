@@ -9,6 +9,7 @@ import (
 	"github.com/netlify/netlify-subscriptions/conf"
 	"github.com/netlify/netlify-subscriptions/models"
 	"github.com/spf13/cobra"
+	"github.com/stripe/stripe-go"
 )
 
 var rootCmd = cobra.Command{
@@ -41,8 +42,11 @@ func run(cmd *cobra.Command, args []string) {
 		logger.Fatal("Failed to connect to db: " + err.Error())
 	}
 
+	logger.Info("Configuring stripe access")
+	stripe.Key = config.StripeKey
+
 	logger.Info("Starting API on port %d", config.Port)
-	a := api.NewAPI(config, db)
+	a := api.NewAPI(config, db, &api.StripeProxy{})
 	err = a.Serve()
 	if err != nil {
 		logger.WithError(err).Error("Error while running API: %v", err)
