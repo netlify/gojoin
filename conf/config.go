@@ -10,9 +10,19 @@ import (
 
 // Config the application's configuration
 type Config struct {
-	Port      int64
-	Config    string
-	LogConfig LoggingConfig
+	Port           int64         `json:"port"`
+	JWTSecret      string        `json:"jwt_secret"`
+	AdminGroupName string        `json:"admin_group_name"`
+	StripeKey      string        `json:"stripe_key"`
+	LogConfig      LoggingConfig `json:"log"`
+	DBConfig       DBConfig      `json:"db"`
+}
+
+type DBConfig struct {
+	Driver      string `json:"driver"`
+	ConnURL     string `json:"url"`
+	Namespace   string `json:"namespace"`
+	Automigrate bool   `json:"automigrate"`
 }
 
 // LoadConfig loads the config from a file if specified, otherwise from the environment
