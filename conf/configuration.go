@@ -58,14 +58,15 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 		return nil, errors.Wrap(err, "unmarshaling configuration")
 	}
 
-	if err := populateConfig(config); err != nil {
+	config, err = populateConfig(config)
+	if err != nil {
 		return nil, errors.Wrap(err, "populating config")
 	}
 
 	return validateConfig(config)
 }
 
-func validateConfig(config *Config) (*Configuration, error) {
+func validateConfig(config *Config) (*Config, error) {
 	if config.DBConfig.ConnURL == "" && os.Getenv("DATABASE_URL") != "" {
 		config.DBConfig.ConnURL = os.Getenv("DATABASE_URL")
 	}
