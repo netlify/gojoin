@@ -171,6 +171,7 @@ func request(t *testing.T, method, path string, body interface{}, isAdmin bool) 
 
 func extractPayload(t *testing.T, rsp *http.Response, payload interface{}) {
 	b, _ := ioutil.ReadAll(rsp.Body)
+	defer rsp.Body.Close()
 	if rsp.StatusCode != http.StatusOK {
 		assert.FailNow(t, fmt.Sprintf("Expected a 200 - %d: with payload: %s", rsp.StatusCode, string(b)))
 	}
@@ -179,6 +180,23 @@ func extractPayload(t *testing.T, rsp *http.Response, payload interface{}) {
 	if !assert.NoError(t, err) {
 		assert.FailNow(t, "Failed to parse payload: "+string(b))
 	}
+}
+
+func extractError(t *testing.T, errCode int, rsp *http.Response) *HTTPError {
+	var err *HTTPError
+	if assert.Equal(t, errCode, rsp.StatusCode) {
+		b, _ := ioutil.ReadAll(rsp.Body)
+		err = new(HTTPError)
+		e := json.Unmarshal(b, err)
+		if !assert.NoError(t, e) {
+			assert.FailNow(t, "Failed to parse payload: "+string(b))
+		}
+
+		assert.Equal(t, errCode, err.Code)
+		assert.NotEmpty(t, err.Message)
+	}
+
+	return err
 }
 
 func testToken(t *testing.T, name, email, secret string, isAdmin bool) string {

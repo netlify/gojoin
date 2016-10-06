@@ -81,15 +81,24 @@ func deleteSub(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sub != nil {
-		log := getLogger(ctx)
-		// TODO remove it from stripe
+		log := getLogger(ctx).WithField("type", subType)
 
+		pp := getPayerProxy(ctx)
+		err := pp.delete(sub.RemoteID)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "Error communicating with stripe: %s", err)
+			return
+		}
+
+		log.Info("Removed subscription from stripe")
 		rsp := getDB(ctx).Delete(sub)
 		if rsp.Error != nil {
 			log.WithError(rsp.Error).Warnf("Error while deleting subscription %+v", sub)
 			writeError(w, http.StatusInternalServerError, "Error while deleting subscription")
 			return
 		}
+
+		log.Info("Removed subscription from db")
 	}
 
 	sendJSON(w, http.StatusAccepted, struct{}{})
@@ -118,9 +127,11 @@ func createOrModSub(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if sub == nil {
+		log.Debug("Starting to create new subscription")
 		sub, httpErr = createSub(ctx, subType, payload)
 	} else {
-		sub, httpErr = updateSub(ctx, payload)
+		log.WithField("old_plan", sub.Plan).Debug("Starting to update subscription")
+		httpErr = updateSub(ctx, sub, payload)
 	}
 
 	if httpErr != nil {
@@ -159,8 +170,26 @@ func createSub(ctx context.Context, subType string, payload *subscriptionRequest
 	return sub, nil
 }
 
-func updateSub(ctx context.Context, payload *subscriptionRequest) (*models.Subscription, *HTTPError) {
-	return nil, nil // TODO
+func updateSub(ctx context.Context, existing *models.Subscription, payload *subscriptionRequest) *HTTPError {
+	log := getLogger(ctx)
+	pp := getPayerProxy(ctx)
+
+	remoteID, err := pp.update(existing.RemoteID, payload.Plan, payload.StripeKey)
+	if err != nil {
+		log.WithError(err).Info("Failed to create sub in stripe")
+		return httpError(http.StatusBadRequest, "Failed updating subscription %s to plan %s", existing.RemoteID, payload.Plan)
+	}
+
+	existing.RemoteID = remoteID
+	existing.Plan = payload.Plan
+
+	rsp := getDB(ctx).Save(existing)
+	if rsp.Error != nil {
+		log.WithError(rsp.Error).Warnf("Failed to create new subscription after successful stripe call: %+v", existing)
+		return httpError(http.StatusInternalServerError, "Error while creating db entry, but stripe call was successful")
+	}
+
+	return nil
 }
 
 func getSubscription(ctx context.Context, userID string, planType string) (*models.Subscription, *HTTPError) {

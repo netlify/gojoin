@@ -10,6 +10,7 @@ import (
 type payerProxy interface {
 	create(userID, plan, token string) (string, error)
 	update(subID, plan, token string) (string, error)
+	delete(subID string) error
 }
 
 type StripeProxy struct {
@@ -37,12 +38,20 @@ func (StripeProxy) update(subID, plan, token string) (string, error) {
 	return s.ID, nil
 }
 
+func (StripeProxy) delete(subID string) error {
+	_, err := sub.Cancel(subID, &stripe.SubParams{})
+	return err
+}
+
 type errorProxy struct {
 }
 
 func (errorProxy) create(userID, plan, token string) (string, error) {
 	return "", errors.New("No payer proxy provided")
 }
-func (errorProxy) update(userID, plan, token string) (string, error) {
+func (errorProxy) update(subID, plan, token string) (string, error) {
 	return "", errors.New("No payer proxy provided")
+}
+func (errorProxy) delete(subID string) error {
+	return errors.New("No payer proxy provided")
 }
