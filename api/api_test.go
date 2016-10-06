@@ -97,7 +97,18 @@ func TestTokenExtraction(t *testing.T) {
 }
 
 func TestBadAuthHeader(t *testing.T) {
-	// TODO
+	r, _ := http.NewRequest("GET", serverURL+"/", nil)
+	r.Header.Add("Authorization", "Bearer NONSENSE")
+
+	rsp, _ := client.Do(r)
+	extractError(t, http.StatusUnauthorized, rsp)
+}
+
+func TestMissingAuthHeader(t *testing.T) {
+	r, _ := http.NewRequest("GET", serverURL+"/", nil)
+
+	rsp, _ := client.Do(r)
+	extractError(t, http.StatusBadRequest, rsp)
 }
 
 func TestMiddleware(t *testing.T) {

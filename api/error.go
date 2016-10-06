@@ -23,7 +23,7 @@ func httpError(code int, fmtString string, args ...interface{}) *HTTPError {
 }
 
 func writeError(w http.ResponseWriter, code int, msg string, args ...interface{}) *HTTPError {
-	err := httpError(http.StatusNotFound, msg, args...)
+	err := httpError(code, msg, args...)
 	sendJSON(w, err.Code, err)
 	return err
 }

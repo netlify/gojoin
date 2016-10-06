@@ -101,11 +101,13 @@ func (a *API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http
 	token, err := extractToken(a.config.JWTSecret, r)
 	if err != nil {
 		log.WithError(err).Info("Failed to parse token")
+		sendJSON(w, err.Code, err)
 		return nil
 	}
 
 	if token == nil {
 		log.Info("Attempted to make unauthenticated request")
+		writeError(w, http.StatusBadRequest, "Must provide a valid JWT Token")
 		return nil
 	}
 
