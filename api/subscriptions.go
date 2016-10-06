@@ -34,9 +34,7 @@ func (s subscriptionRequest) Valid() error {
 	return nil
 }
 
-// TODO
 // listSubs will query stripe for all the subscriptions for a given user.
-// [ ] admin access
 func listSubs(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	log := getLogger(ctx)
 	claims := getClaims(ctx)

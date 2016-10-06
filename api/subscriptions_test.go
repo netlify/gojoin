@@ -54,19 +54,6 @@ func TestQueryForSingleSubAsUser(t *testing.T) {
 	validateSub(t, s1, sub)
 }
 
-//func TestQueryForSingleSubAsAdmin(t *testing.T) {
-//	s1 := createSubscription("twoface", testUserEmail, "nonsense")
-//	s2 := createSubscription("twoface", testUserEmail, "more-nonsense")
-//	defer cleanup(s1, s2)
-//
-//	rsp := request(t, "GET", "/subscriptions/"+s1.ID, nil, true)
-//
-//	sub := new(models.Subscription)
-//	extractPayload(t, rsp, sub)
-//
-//	validateSub(t, s1, sub)
-//}
-//
 func TestRemoveSubscriptionAsUser(t *testing.T) {
 	tp := &testProxy{}
 	api.payerProxy = tp
@@ -92,30 +79,17 @@ func TestRemoveSubscriptionAsUser(t *testing.T) {
 }
 
 func TestRemoveSubNotFound(t *testing.T) {
-	// TODO
+	rsp := request(t, "DELETE", "/subscriptions/membership", nil, false)
+
+	b, _ := ioutil.ReadAll(rsp.Body)
+	assert.Equal(t, "{}\n", string(b))
+	assert.Equal(t, 202, rsp.StatusCode)
 }
 
 func TestGetSubNotFound(t *testing.T) {
-	// TODO
+	rsp := request(t, "GET", "/subscriptions/membership", nil, false)
+	extractError(t, 404, rsp)
 }
-
-//func TestRemoveSubscriptionAsAdmin(t *testing.T) {
-//	s1 := createSubscription("twoface", testUserEmail, "nonsense")
-//	s2 := createSubscription("twoface", testUserEmail, "more-nonsense")
-//	defer cleanup(s1, s2)
-//
-//	rsp := request(t, "DELETE", "/subscriptions/"+s1.ID, nil, true)
-//
-//	b, _ := ioutil.ReadAll(rsp.Body)
-//	assert.Equal(t, "{}\n", string(b))
-//	assert.Equal(t, 202, rsp.StatusCode)
-//
-//	found := &models.Subscription{ID: s1.ID}
-//	dbRsp := db.Unscoped().Find(found)
-//	if assert.Nil(t, dbRsp.Error) {
-//		assert.NotNil(t, found.DeletedAt)
-//	}
-//}
 
 func TestCreateNewSubscription(t *testing.T) {
 	tp := &testProxy{createSubID: "remote-id"}
