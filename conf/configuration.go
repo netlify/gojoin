@@ -67,16 +67,16 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 }
 
 func validateConfig(config *Config) (*Configuration, error) {
-	if config.DB.ConnURL == "" && os.Getenv("DATABASE_URL") != "" {
-		config.DB.ConnURL = os.Getenv("DATABASE_URL")
+	if config.DBConfig.ConnURL == "" && os.Getenv("DATABASE_URL") != "" {
+		config.DBConfig.ConnURL = os.Getenv("DATABASE_URL")
 	}
 
-	if config.DB.Driver == "" && config.DB.ConnURL != "" {
-		u, err := url.Parse(config.DB.ConnURL)
+	if config.DBConfig.Driver == "" && config.DBConfig.ConnURL != "" {
+		u, err := url.Parse(config.DBConfig.ConnURL)
 		if err != nil {
 			return nil, errors.Wrap(err, "parsing db connection url")
 		}
-		config.DB.Driver = u.Scheme
+		config.DBConfig.Driver = u.Scheme
 	}
 
 	if config.Port == 0 && os.Getenv("PORT") != "" {
