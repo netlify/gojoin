@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/guregu/kami"
 	"github.com/pborman/uuid"
 	"github.com/rs/cors"
@@ -22,7 +22,7 @@ import (
 type API struct {
 	log        *logrus.Entry
 	config     *conf.Config
-	port       int64
+	port       int
 	handler    http.Handler
 	db         *gorm.DB
 	payerProxy payerProxy
@@ -68,7 +68,9 @@ func NewAPI(config *conf.Config, db *gorm.DB, proxy payerProxy) *API {
 }
 
 func (a *API) Serve() error {
-	return http.ListenAndServe(fmt.Sprintf(":%d", a.port), a.handler)
+	l := fmt.Sprintf(":%d", a.port)
+	a.log.Infof("Netlify Subscriptions API started on: %s", l)
+	return http.ListenAndServe(l, a.handler)
 }
 
 func logCompleted(ctx context.Context, wp mutil.WriterProxy, r *http.Request) {

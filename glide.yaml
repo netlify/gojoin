@@ -4,8 +4,6 @@ import:
   version: v0.10.0
 - package: github.com/spf13/cobra
 - package: github.com/spf13/viper
-- package: github.com/benoitmasson/viper
-  version: nested-maps
 - package: github.com/rs/cors
   version: v1.0
 - package: github.com/guregu/kami
@@ -20,3 +18,5 @@ import:
   - assert
 - package: github.com/stripe/stripe-go
   version: v18.1.0
+- package: github.com/valyala/fasthttp
+  version: v20160617
