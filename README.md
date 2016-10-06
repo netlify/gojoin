@@ -1,5 +1,9 @@
 # netlify-subscriptions
+
 This acts as a proxy to stripe. It exposes a very simple way to call stripe's subscription endpoints. 
+
+Netlify Subscriptions is released under the [MIT License](LICENSE).
+Please make sure you understand its [implications and guarantees](https://writing.kemitchell.com/2016/09/21/MIT-License-Line-by-Line.html).
 
 ## authentication
 All of the endpoints rely on a JWT token. We will use the user ID set in that token for the user information to stripe.
