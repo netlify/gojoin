@@ -13,7 +13,7 @@ import (
 
 // Config the application's configuration
 type Config struct {
-	Port           int64         `mapstructure:"port" json:"port"`
+	Port           int           `mapstructure:"port" json:"port"`
 	JWTSecret      string        `mapstructure:"jwt_secret" json:"jwt_secret"`
 	AdminGroupName string        `mapstructure:"admin_group_name" json:"admin_group_name"`
 	StripeKey      string        `mapstructure:"stripe_key" json:"stripe_key"`

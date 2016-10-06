@@ -22,7 +22,8 @@ import (
 
 	"bytes"
 
-	"github.com/fsouza/go-dockerclient/external/golang.org/x/net/context"
+	"context"
+
 	"github.com/netlify/netlify-subscriptions/conf"
 	"github.com/netlify/netlify-subscriptions/models"
 )

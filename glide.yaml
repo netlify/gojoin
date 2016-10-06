@@ -18,3 +18,5 @@ import:
   - assert
 - package: github.com/stripe/stripe-go
   version: v18.1.0
+- package: github.com/valyala/fasthttp
+  version: v20160617

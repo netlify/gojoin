@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/guregu/kami"
 	"github.com/pborman/uuid"
 	"github.com/rs/cors"
@@ -21,7 +22,7 @@ import (
 type API struct {
 	log        *logrus.Entry
 	config     *conf.Config
-	port       int64
+	port       int
 	handler    http.Handler
 	db         *gorm.DB
 	payerProxy payerProxy
