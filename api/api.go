@@ -26,32 +26,36 @@ type API struct {
 	handler    http.Handler
 	db         *gorm.DB
 	payerProxy payerProxy
+	version    string
 }
 
 type JWTClaims struct {
 	jwt.StandardClaims
-	ID     string
-	Email  string
-	Groups []string
+	ID     string   `json:"id"`
+	Email  string   `json:"email"`
+	Groups []string `json:"groups"`
 }
 
 var bearerRegexp = regexp.MustCompile(`^(?:B|b)earer (\S+$)`)
 
-func NewAPI(config *conf.Config, db *gorm.DB, proxy payerProxy) *API {
+func NewAPI(config *conf.Config, db *gorm.DB, proxy payerProxy, version string) *API {
 	api := &API{
 		log:        logrus.WithField("component", "api"),
 		config:     config,
 		port:       config.Port,
 		db:         db,
 		payerProxy: proxy,
+		version:    version,
 	}
 
 	k := kami.New()
 	k.LogHandler = logCompleted
 
-	k.Use("/", api.populateConfig)
+	k.Get("/", api.hello)
 
-	k.Get("/", hello)
+	k.Use("/subscriptions/", api.populateConfig)
+	k.Use("/subscriptions", api.populateConfig)
+
 	k.Get("/subscriptions", listSubs)
 	k.Get("/subscriptions/:type", viewSub)
 	k.Put("/subscriptions/:type", createOrModSub)
@@ -126,9 +130,9 @@ func (a *API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http
 		"user_id":  claims.ID,
 	})
 	ctx = setAdminFlag(ctx, adminFlag)
-
 	ctx = setToken(ctx, token)
 	ctx = setLogger(ctx, log)
+
 	return ctx
 }
 
@@ -160,10 +164,9 @@ func extractToken(secret string, r *http.Request) (*jwt.Token, *HTTPError) {
 	return token, nil
 }
 
-func hello(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	version := getVersion(ctx)
+func (a *API) hello(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	sendJSON(w, http.StatusOK, map[string]string{
-		"version":     version,
+		"version":     a.version,
 		"application": "netlify-subscriptions",
 	})
 }

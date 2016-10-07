@@ -62,7 +62,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	api = NewAPI(config, db, errorProxy{})
+	api = NewAPI(config, db, errorProxy{}, "test")
 	server := httptest.NewServer(api.handler)
 	defer server.Close()
 
@@ -98,7 +98,7 @@ func TestTokenExtraction(t *testing.T) {
 }
 
 func TestBadAuthHeader(t *testing.T) {
-	r, _ := http.NewRequest("GET", serverURL+"/", nil)
+	r, _ := http.NewRequest("GET", serverURL+"/subscriptions", nil)
 	r.Header.Add("Authorization", "Bearer NONSENSE")
 
 	rsp, _ := client.Do(r)
@@ -106,7 +106,7 @@ func TestBadAuthHeader(t *testing.T) {
 }
 
 func TestMissingAuthHeader(t *testing.T) {
-	r, _ := http.NewRequest("GET", serverURL+"/", nil)
+	r, _ := http.NewRequest("GET", serverURL+"/subscriptions", nil)
 
 	rsp, _ := client.Do(r)
 	extractError(t, http.StatusBadRequest, rsp)
@@ -114,7 +114,7 @@ func TestMissingAuthHeader(t *testing.T) {
 
 func TestMiddleware(t *testing.T) {
 	tokenString := testToken(t, testUserID, testUserEmail, config.JWTSecret, true)
-	r, _ := http.NewRequest("GET", serverURL+"/", nil)
+	r, _ := http.NewRequest("GET", serverURL+"/subscriptions", nil)
 	r.Header.Add("Authorization", "Bearer "+tokenString)
 
 	ctx := context.Background()
