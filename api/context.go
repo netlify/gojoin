@@ -34,17 +34,6 @@ func getStartTime(ctx context.Context) *time.Time {
 	return obj.(*time.Time)
 }
 
-func setVersion(ctx context.Context, version string) context.Context {
-	return context.WithValue(ctx, versionKey, version)
-}
-func getVersion(ctx context.Context) string {
-	obj := ctx.Value(versionKey)
-	if obj == nil {
-		return ""
-	}
-	return obj.(string)
-}
-
 func setConfig(ctx context.Context, config *conf.Config) context.Context {
 	return context.WithValue(ctx, configKey, config)
 }

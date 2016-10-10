@@ -22,6 +22,8 @@ func RootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringP("config", "c", "", "the config file to use")
 	rootCmd.Flags().IntP("port", "p", 0, "the port to use")
 
+	rootCmd.AddCommand(&versionCmd)
+
 	return &rootCmd
 }
 
@@ -45,8 +47,8 @@ func run(cmd *cobra.Command, args []string) {
 	logger.Info("Configuring stripe access")
 	stripe.Key = config.StripeKey
 
-	logger.Info("Starting API on port %d", config.Port)
-	a := api.NewAPI(config, db, &api.StripeProxy{})
+	logger.Infof("Starting API on port %d", config.Port)
+	a := api.NewAPI(config, db, &api.StripeProxy{}, Version)
 	err = a.Serve()
 	if err != nil {
 		logger.WithError(err).Error("Error while running API: %v", err)
