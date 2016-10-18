@@ -1,6 +1,6 @@
 # netlify-subscriptions
 
-This acts as a proxy to stripe. It exposes a very simple way to call stripe's subscription endpoints. 
+This acts as a proxy to stripe. It exposes a very simple way to call stripe's subscription endpoints.
 
 Netlify Subscriptions is released under the [MIT License](LICENSE).
 Please make sure you understand its [implications and guarantees](https://writing.kemitchell.com/2016/09/21/MIT-License-Line-by-Line.html).
@@ -22,13 +22,16 @@ The API as is:
 
     GET /subscriptions -- list all the subscptions for the user
 
-These endpoints are all grouped by a `type` of subscription. For instance if you have a `membership` type with 
-plan levels gold, silver, and bronze.  
+This endpoint will return a list of subscriptions, but also a JWT token with the memberships added to the 'groups'
+in the format: 'subs.<type>.<plan>'
+
+These endpoints are all grouped by a `type` of subscription. For instance if you have a `membership` type with
+plan levels gold, silver, and bronze.
 
     GET /subscriptions/:type
     POST /subscriptions/:type
     DELETE /subscriptions/:type
-    
+
 The POST endpoint takes a payload like so
 
 ``` json
@@ -38,6 +41,6 @@ The POST endpoint takes a payload like so
     }
 ```
 
-Using this endpoint will create the plan if it doesn't exist, otherwise it will change the subscription to that plan. 
+Using this endpoint will create the plan if it doesn't exist, otherwise it will change the subscription to that plan.
 The other responses are defined in `api/subscriptions.go`.
 
