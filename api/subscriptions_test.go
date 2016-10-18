@@ -20,26 +20,53 @@ func TestQueryForAllSubsAsUser(t *testing.T) {
 	defer cleanup(s1, s2, s3)
 
 	rsp := request(t, "GET", "/subscriptions", nil, false)
-	subs := []models.Subscription{}
-	extractPayload(t, rsp, &subs)
+	body := new(getAllResponse)
+	extractPayload(t, rsp, &body)
 
-	assert.Equal(t, 2, len(subs))
-	foundS1, foundS2 := false, false
-	for _, s := range subs {
+	assert.Equal(t, 2, len(body.Subscriptions))
+	for _, s := range body.Subscriptions {
 		switch s.ID {
 		case s1.ID:
 			validateSub(t, s1, &s)
-			foundS1 = true
 		case s2.ID:
 			validateSub(t, s2, &s)
-			foundS2 = true
 		default:
 			assert.Fail(t, "unexpected sub: "+s.ID)
 		}
 	}
 
-	assert.True(t, foundS1)
-	assert.True(t, foundS2)
+	assert.NotEmpty(t, body.Token)
+	claims := decodeToken(t, body.Token, config.JWTSecret)
+	if assert.NotNil(t, claims) {
+		assert.Equal(t, 2, len(claims.Groups))
+		for _, g := range claims.Groups {
+			switch g {
+			case "subs.membership.nonsense":
+			case "subs.revenue.more-nonsense":
+			default:
+				assert.Fail(t, "unexpected group: "+g)
+			}
+		}
+	}
+}
+
+func TestQueryForAllUsersNoNewGroups(t *testing.T) {
+	s1 := createSubscription(testUserID, testUserEmail, "pokemon", "pikachu")
+	defer cleanup(s1)
+
+	tokenString := testTokenWithGroups(t, testUserID, testUserEmail, config.JWTSecret, false, []string{"something", "subs.pokemon.pikachu"})
+	r, _ := http.NewRequest("GET", serverURL+"/subscriptions", nil)
+	r.Header.Add("Authorization", "Bearer "+tokenString)
+
+	rsp, err := client.Do(r)
+	if !assert.NoError(t, err) {
+		assert.FailNow(t, "failed to make request: "+r.URL.String())
+	}
+
+	body := new(getAllResponse)
+	extractPayload(t, rsp, &body)
+
+	assert.Equal(t, tokenString, body.Token)
 }
 
 func TestQueryForSingleSubAsUser(t *testing.T) {
