@@ -37,6 +37,7 @@ type JWTClaims struct {
 }
 
 var bearerRegexp = regexp.MustCompile(`^(?:B|b)earer (\S+$)`)
+var signingMethod = jwt.SigningMethodHS256
 
 func NewAPI(config *conf.Config, db *gorm.DB, proxy payerProxy, version string) *API {
 	api := &API{
@@ -148,7 +149,7 @@ func extractToken(secret string, r *http.Request) (*jwt.Token, *HTTPError) {
 	}
 
 	token, err := jwt.ParseWithClaims(matches[1], &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if token.Header["alg"] != jwt.SigningMethodHS256.Name {
+		if token.Header["alg"] != signingMethod.Name {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil

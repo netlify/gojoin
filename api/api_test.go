@@ -212,6 +212,10 @@ func extractError(t *testing.T, errCode int, rsp *http.Response) *HTTPError {
 }
 
 func testToken(t *testing.T, name, email, secret string, isAdmin bool) string {
+	return testTokenWithGroups(t, name, email, secret, isAdmin, []string{})
+}
+
+func testTokenWithGroups(t *testing.T, name, email, secret string, isAdmin bool, groups []string) string {
 	claims := &JWTClaims{
 		ID:    name,
 		Email: email,
@@ -222,9 +226,26 @@ func testToken(t *testing.T, name, email, secret string, isAdmin bool) string {
 		claims.Groups = []string{"admin"}
 	}
 
+	for _, g := range groups {
+		claims.Groups = append(claims.Groups, g)
+	}
+
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
 	if !assert.NoError(t, err) {
 		assert.FailNow(t, "failed to create token")
 	}
 	return tokenString
+}
+
+func decodeToken(t *testing.T, jwtString, secret string) *JWTClaims {
+	token, err := jwt.ParseWithClaims(jwtString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if assert.Equal(t, token.Header["alg"], signingMethod.Name) {
+			return []byte(secret), nil
+		}
+		return nil, nil
+	})
+	if assert.NoError(t, err) {
+		return token.Claims.(*JWTClaims)
+	}
+	return nil
 }

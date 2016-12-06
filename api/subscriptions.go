@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/guregu/kami"
 	"github.com/netlify/netlify-subscriptions/models"
 	"gopkg.in/square/go-jose.v1/json"
@@ -34,7 +35,13 @@ func (s subscriptionRequest) Valid() error {
 	return nil
 }
 
+type getAllResponse struct {
+	Subscriptions []models.Subscription `json:"subscriptions"`
+	Token         string                `json:"token"`
+}
+
 // listSubs will query stripe for all the subscriptions for a given user.
+// it also returns a newly decorated token. The 'groups' are added as: 'subs.<type>.<plan>'
 func listSubs(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	log := getLogger(ctx)
 	claims := getClaims(ctx)
@@ -52,7 +59,35 @@ func listSubs(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Debugf("Found %d subscriptions associated with id %s", len(subs), claims.ID)
-	sendJSON(w, http.StatusOK, subs)
+
+	response := &getAllResponse{
+		Subscriptions: subs,
+	}
+
+	// now we update the token
+	exists := make(map[string]bool)
+	for _, g := range claims.Groups {
+		exists[g] = true
+	}
+
+	for _, sub := range subs {
+		group := fmt.Sprintf("subs.%s.%s", sub.Type, sub.Plan)
+		if _, ok := exists[group]; !ok {
+			exists[group] = true
+			claims.Groups = append(claims.Groups, group)
+		}
+	}
+
+	// now we need to re-serialize the token
+	config := getConfig(ctx)
+	signed, err := jwt.NewWithClaims(signingMethod, claims).SignedString([]byte(config.JWTSecret))
+	if err != nil {
+		log.WithError(err).Warnf("Error while creating new signed token")
+		writeError(w, http.StatusInternalServerError, "Error while creating new signed token")
+	}
+	response.Token = signed
+
+	sendJSON(w, http.StatusOK, response)
 }
 
 func viewSub(ctx context.Context, w http.ResponseWriter, r *http.Request) {
