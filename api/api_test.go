@@ -24,6 +24,7 @@ import (
 
 	"context"
 
+	"github.com/fsouza/go-dockerclient/external/github.com/Sirupsen/logrus"
 	"github.com/netlify/netlify-subscriptions/conf"
 	"github.com/netlify/netlify-subscriptions/models"
 )
@@ -61,7 +62,7 @@ func TestMain(m *testing.M) {
 		fmt.Println("Failed to connect to db")
 		os.Exit(1)
 	}
-
+	logrus.SetLevel(logrus.DebugLevel)
 	api = NewAPI(config, db, errorProxy{}, "test")
 	server := httptest.NewServer(api.handler)
 	defer server.Close()
