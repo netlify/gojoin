@@ -1,30 +1,22 @@
 package api
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
-
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 
-	"io/ioutil"
-
-	"os"
-
-	"net/http/httptest"
-
-	"fmt"
-
-	"encoding/json"
-
-	"bytes"
-
-	"context"
-
-	"github.com/fsouza/go-dockerclient/external/github.com/Sirupsen/logrus"
 	"github.com/netlify/netlify-subscriptions/conf"
 	"github.com/netlify/netlify-subscriptions/models"
 )
