@@ -52,7 +52,7 @@ func (StripeProxy) createCustomer(userID, email, payToken string) (string, error
 			Token: payToken,
 		},
 	}
-	params.Meta["nf_id"] = userID
+	params.Meta = map[string]string{"nf_id": userID}
 	c, err := customer.New(params)
 	if err != nil {
 		return "", err
