@@ -83,7 +83,7 @@ func logCompleted(ctx context.Context, wp mutil.WriterProxy, r *http.Request) {
 
 	start := getStartTime(ctx)
 	if start != nil {
-		log = log.WithField("duration", time.Since(*start))
+		log = log.WithField("duration", time.Since(*start).Nanoseconds())
 	}
 
 	log.Infof("Completed request %s. path: %s, method: %s, status: %d", getRequestID(ctx), r.URL.Path, r.Method, wp.Status())

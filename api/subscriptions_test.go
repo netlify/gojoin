@@ -14,10 +14,12 @@ import (
 )
 
 func TestQueryForAllSubsAsUser(t *testing.T) {
-	s1 := createSubscription(testUserID, testUserEmail, "membership", "nonsense")
-	s2 := createSubscription(testUserID, testUserEmail, "revenue", "more-nonsense")
-	s3 := createSubscription("batman", "bruce@dc.com", "membership", "nonsense")
-	defer cleanup(s1, s2, s3)
+	tu1 := createUser(testUserID, testUserEmail, "some-stripe-value")
+	tu2 := createUser("batman", "bruce@dc.com", "eulav-epits-emos")
+	s1 := createSubscription(testUserID, "membership", "nonsense")
+	s2 := createSubscription(testUserID, "revenue", "more-nonsense")
+	s3 := createSubscription("batman", "membership", "nonsense")
+	defer cleanup(s1, s2, s3, tu1, tu2)
 
 	rsp := request(t, "GET", "/subscriptions", nil, false)
 	body := new(getAllResponse)
@@ -51,8 +53,9 @@ func TestQueryForAllSubsAsUser(t *testing.T) {
 }
 
 func TestQueryForAllUsersNoNewGroups(t *testing.T) {
-	s1 := createSubscription(testUserID, testUserEmail, "pokemon", "pikachu")
-	defer cleanup(s1)
+	tu := createUser(testUserID, testUserEmail, "stripe-given-value")
+	s1 := createSubscription(testUserID, "pokemon", "pikachu")
+	defer cleanup(s1, tu)
 
 	tokenString := testTokenWithGroups(t, testUserID, testUserEmail, config.JWTSecret, false, []string{"something", "subs.pokemon.pikachu"})
 	r, _ := http.NewRequest("GET", serverURL+"/subscriptions", nil)
@@ -70,9 +73,10 @@ func TestQueryForAllUsersNoNewGroups(t *testing.T) {
 }
 
 func TestQueryForSingleSubAsUser(t *testing.T) {
-	s1 := createSubscription(testUserID, testUserEmail, "membership", "nonsense")
-	s2 := createSubscription(testUserID, testUserEmail, "revenue", "more-nonsense")
-	defer cleanup(s1, s2)
+	tu := createUser(testUserID, testUserEmail, "stripe-given-value")
+	s1 := createSubscription(testUserID, "membership", "nonsense")
+	s2 := createSubscription(testUserID, "revenue", "more-nonsense")
+	defer cleanup(s1, s2, tu)
 
 	rsp := request(t, "GET", "/subscriptions/membership", nil, false)
 	sub := new(models.Subscription)
@@ -84,9 +88,10 @@ func TestQueryForSingleSubAsUser(t *testing.T) {
 func TestRemoveSubscriptionAsUser(t *testing.T) {
 	tp := &testProxy{}
 	api.payerProxy = tp
-	s1 := createSubscription(testUserID, testUserEmail, "membership", "nonsense")
-	s2 := createSubscription(testUserID, testUserEmail, "revenue", "more-nonsense")
-	defer cleanup(s1, s2)
+	tu := createUser(testUserID, testUserEmail, "stripe-given-value")
+	s1 := createSubscription(testUserID, "membership", "nonsense")
+	s2 := createSubscription(testUserID, "revenue", "more-nonsense")
+	defer cleanup(s1, s2, tu)
 
 	rsp := request(t, "DELETE", "/subscriptions/membership", nil, false)
 
@@ -119,7 +124,7 @@ func TestGetSubNotFound(t *testing.T) {
 }
 
 func TestCreateNewSubscription(t *testing.T) {
-	tp := &testProxy{createSubID: "remote-id"}
+	tp := &testProxy{createSubID: "remote-id", createCustomerID: "remote-user-id"}
 	api.payerProxy = tp
 	defer func() { api.payerProxy = &errorProxy{} }()
 
@@ -129,20 +134,26 @@ func TestCreateNewSubscription(t *testing.T) {
 	}
 	rsp := request(t, "PUT", "/subscriptions/membership", payload, false)
 
-	dbRsp := validateResponseAndDBVal(t, rsp, &models.Subscription{
-		UserEmail: testUserEmail,
-		Type:      "membership",
-		UserID:    testUserID,
-		Plan:      "super-important",
-		RemoteID:  "remote-id",
-	})
-	cleanup(dbRsp)
+	expectedSub := models.Subscription{
+		Type:     "membership",
+		UserID:   testUserID,
+		Plan:     "super-important",
+		RemoteID: "remote-id",
+	}
+	expectedUser := models.User{
+		ID:       testUserID,
+		Email:    testUserEmail,
+		RemoteID: "remote-user-id",
+	}
+
+	dbRsp, dbUser := validateResponseAndDBVal(t, rsp, &expectedSub, &expectedUser)
+	cleanup(dbRsp, dbUser)
 
 	assert.Len(t, tp.createCalls, 1)
 	call := tp.createCalls[0]
 	assert.Equal(t, "super-important", call.plan)
 	assert.Equal(t, "something", call.token)
-	assert.Equal(t, testUserID, call.userID)
+	assert.Equal(t, "remote-user-id", call.userID)
 	assert.Empty(t, tp.updateCalls)
 }
 
@@ -151,22 +162,28 @@ func TestModifySubscription(t *testing.T) {
 	api.payerProxy = tp
 	defer func() { api.payerProxy = &errorProxy{} }()
 
-	s1 := createSubscription(testUserID, testUserEmail, "pokemon", "magicarp")
-	defer cleanup(s1)
+	tu := createUser(testUserID, testUserEmail, "stripe-given-value")
+	s1 := createSubscription(testUserID, "pokemon", "magicarp")
+	defer cleanup(s1, tu)
 
 	payload := &subscriptionRequest{
 		StripeKey: "something",
 		Plan:      "charizard",
 	}
 	rsp := request(t, "PUT", "/subscriptions/pokemon", payload, false)
-	dbRsp := validateResponseAndDBVal(t, rsp, &models.Subscription{
-		UserEmail: testUserEmail,
-		Type:      "pokemon",
-		UserID:    testUserID,
-		Plan:      "charizard",
-		RemoteID:  "remote-id",
-	})
-	cleanup(dbRsp)
+	expectedSub := &models.Subscription{
+		Type:     "pokemon",
+		UserID:   testUserID,
+		Plan:     "charizard",
+		RemoteID: "remote-id",
+	}
+	expectedUser := &models.User{
+		ID:       testUserID,
+		Email:    testUserEmail,
+		RemoteID: "stripe-given-value",
+	}
+	dbRsp, dbUser := validateResponseAndDBVal(t, rsp, expectedSub, expectedUser)
+	cleanup(dbRsp, dbUser)
 
 	assert.Len(t, tp.updateCalls, 1)
 	call := tp.updateCalls[0]
@@ -174,30 +191,8 @@ func TestModifySubscription(t *testing.T) {
 	assert.Equal(t, "something", call.token)
 	assert.Equal(t, s1.RemoteID, call.subID)
 	assert.Empty(t, tp.createCalls)
-}
 
-func validateResponseAndDBVal(t *testing.T, rsp *http.Response, expected *models.Subscription) *models.Subscription {
-	var dbSub *models.Subscription
-	if assert.Equal(t, http.StatusOK, rsp.StatusCode) {
-		rspSub := new(models.Subscription)
-		extractPayload(t, rsp, rspSub)
-		if rspSub.ID == "" {
-			assert.FailNow(t, "Failed to get a valid subscription")
-		}
-
-		expected.ID = rspSub.ID
-		validateSub(t, expected, rspSub)
-
-		dbSub = &models.Subscription{
-			ID: rspSub.ID,
-		}
-		dbRsp := db.Where(dbSub).First(dbSub)
-		if assert.NoError(t, dbRsp.Error) {
-			validateSub(t, expected, dbSub)
-		}
-	}
-
-	return dbSub
+	assert.Len(t, tp.createCustomerCalls, 0)
 }
 
 func TestCreateNewSubscriptionWithBadPayload(t *testing.T) {
@@ -214,12 +209,8 @@ func TestCreateNewSubscriptionWithBadPayload(t *testing.T) {
 	extractError(t, fasthttp.StatusBadRequest, rsp)
 }
 
-//
-//func TestCreateNewSubscriptionWithExisting(t *testing.T) {
-//
-//}
-//
 func TestCreateNewSubscriptionWithStripeError(t *testing.T) {
+	defer cleanup(createUser(testUserID, testUserEmail, "remote-id"))
 	api.payerProxy = errorProxy{}
 	payload := &subscriptionRequest{
 		StripeKey: "something",
@@ -236,7 +227,6 @@ func TestCreateNewSubscriptionWithStripeError(t *testing.T) {
 func validateSub(t *testing.T, expected *models.Subscription, actual *models.Subscription) {
 	assert.Equal(t, expected.ID, actual.ID)
 	assert.Equal(t, expected.UserID, actual.UserID)
-	assert.Equal(t, expected.UserEmail, actual.UserEmail)
 	assert.Equal(t, expected.Type, actual.Type)
 	assert.Equal(t, expected.RemoteID, actual.RemoteID)
 	assert.Equal(t, expected.Plan, actual.Plan)
@@ -248,13 +238,22 @@ func validateSub(t *testing.T, expected *models.Subscription, actual *models.Sub
 	assert.NotEmpty(t, actual.Plan)
 }
 
-func createSubscription(userID, userEmail, planType string, plan string) *models.Subscription {
+func createUser(userID, email, remoteID string) *models.User {
+	user := &models.User{
+		Email:    email,
+		ID:       userID,
+		RemoteID: remoteID,
+	}
+	db.Create(user)
+	return user
+}
+
+func createSubscription(userID, planType string, plan string) *models.Subscription {
 	sub := &models.Subscription{
-		UserID:    userID,
-		UserEmail: userEmail,
-		Plan:      plan,
-		Type:      planType,
-		RemoteID:  uuid.NewRandom().String(),
+		UserID:   userID,
+		Plan:     plan,
+		Type:     planType,
+		RemoteID: uuid.NewRandom().String(),
 	}
 
 	db.Create(sub)
@@ -281,6 +280,22 @@ type testProxy struct {
 		token string
 	}
 	deleteCalls []string
+
+	createCustomerID    string
+	createCustomerCalls []struct {
+		userID string
+		email  string
+		token  string
+	}
+}
+
+func (tp *testProxy) createCustomer(userID, email, payToken string) (string, error) {
+	tp.createCustomerCalls = append(tp.createCustomerCalls, struct {
+		userID string
+		email  string
+		token  string
+	}{userID, email, payToken})
+	return tp.createCustomerID, nil
 }
 
 func (tp *testProxy) delete(subID string) error {
@@ -304,4 +319,37 @@ func (tp *testProxy) update(subID, plan, token string) (string, error) {
 		token string
 	}{subID, plan, token})
 	return tp.updateSubID, nil
+}
+
+func validateResponseAndDBVal(t *testing.T, rsp *http.Response, expected *models.Subscription, expectedUser *models.User) (*models.Subscription, *models.User) {
+	var dbSub *models.Subscription
+	var dbUser *models.User
+
+	if assert.Equal(t, http.StatusOK, rsp.StatusCode) {
+		rspSub := new(models.Subscription)
+		extractPayload(t, rsp, rspSub)
+		if rspSub.ID == "" {
+			assert.FailNow(t, "Failed to get a valid subscription")
+		}
+
+		expected.ID = rspSub.ID
+		validateSub(t, expected, rspSub)
+
+		dbSub = &models.Subscription{
+			ID: rspSub.ID,
+		}
+		dbRsp := db.Where(dbSub).First(dbSub)
+		if assert.NoError(t, dbRsp.Error) {
+			validateSub(t, expected, dbSub)
+		}
+
+		dbUser = new(models.User)
+		userRsp := db.Where("id = ?", expectedUser.ID).Find(dbUser)
+		if assert.NoError(t, userRsp.Error) {
+			assert.Equal(t, expectedUser.Email, dbUser.Email)
+			assert.Equal(t, expectedUser.RemoteID, dbUser.RemoteID)
+		}
+	}
+
+	return dbSub, dbUser
 }

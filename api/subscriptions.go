@@ -179,19 +179,46 @@ func createSub(ctx context.Context, subType string, payload *subscriptionRequest
 	log := getLogger(ctx)
 	pp := getPayerProxy(ctx)
 	claims := getClaims(ctx)
+	db := getDB(ctx)
 
-	remoteID, err := pp.create(claims.ID, payload.Plan, payload.StripeKey)
+	// do we have a user?
+	user := &models.User{
+		ID: claims.ID,
+	}
+	if rsp := db.Where(user).Find(user); rsp.Error != nil {
+		if rsp.RecordNotFound() {
+			remoteID, err := pp.createCustomer(claims.ID, claims.Email, payload.StripeKey)
+			if err != nil {
+				return nil, httpError(http.StatusInternalServerError, "Failed to create new customer in stripe")
+			}
+			user.RemoteID = remoteID
+			user.Email = claims.Email
+
+			if rsp := db.Save(user); rsp.Error != nil {
+				log.WithError(rsp.Error).Warnf("Failed to save new user with remote ID %s", remoteID)
+				return nil, httpError(http.StatusInternalServerError, "Failed to save customer to db: %d", remoteID)
+			}
+			log.Infof("Created new user with remote ID: %s", user.RemoteID)
+		} else {
+			log.WithError(rsp.Error).Warn("Failed to find user")
+			return nil, httpError(http.StatusInternalServerError, "Failed to find the user specified")
+		}
+	} else {
+		log.WithField("remote_id", user.RemoteID).Debug("Found existing user")
+	}
+
+	// create the subscription
+	subRemoteID, err := pp.create(user.RemoteID, payload.Plan, payload.StripeKey)
 	if err != nil {
 		log.WithError(err).Info("Failed to create sub in stripe")
 		return nil, httpError(http.StatusBadRequest, "Failed create new subscription for plan %s", payload.Plan)
 	}
 
 	sub := &models.Subscription{
-		RemoteID:  remoteID,
-		UserEmail: claims.Email,
-		UserID:    claims.ID,
-		Plan:      payload.Plan,
-		Type:      subType,
+		RemoteID: subRemoteID,
+		UserID:   user.ID,
+		Plan:     payload.Plan,
+		Type:     subType,
 	}
 
 	rsp := getDB(ctx).Create(sub)

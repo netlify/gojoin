@@ -13,7 +13,6 @@ import (
 )
 
 var rootCmd = cobra.Command{
-	Use: "example",
 	Run: run,
 }
 
