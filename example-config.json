@@ -1,0 +1,16 @@
+{
+  "port": 9000,
+  "jwt_secret": "super-secret-value",
+  "admin_group_name": "admin",
+  "stripe_key": "stripe-key",
+  "log": {
+    "level": "debug",
+    "file": ""
+  },
+  "db": {
+    "driver": "",
+    "url": "",
+    "namespace": "sk_prpgMJNTV1xr8tw3t5iFs0FhhamYb",
+    "automigrate": true
+  }
+}
