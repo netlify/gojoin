@@ -38,7 +38,7 @@ func Connect(config *conf.DBConfig) (*gorm.DB, error) {
 }
 
 func AutoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(Subscription{}).Error
+	return db.AutoMigrate(Subscription{}, User{}).Error
 }
 func tableName(defaultName string) string {
 	if Namespace != "" {

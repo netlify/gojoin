@@ -1,28 +1,21 @@
 package api
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
-
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
-
-	"io/ioutil"
-
-	"os"
-
-	"net/http/httptest"
-
-	"fmt"
-
-	"encoding/json"
-
-	"bytes"
-
-	"context"
 
 	"github.com/netlify/netlify-subscriptions/conf"
 	"github.com/netlify/netlify-subscriptions/models"
@@ -61,7 +54,7 @@ func TestMain(m *testing.M) {
 		fmt.Println("Failed to connect to db")
 		os.Exit(1)
 	}
-
+	logrus.SetLevel(logrus.DebugLevel)
 	api = NewAPI(config, db, errorProxy{}, "test")
 	server := httptest.NewServer(api.handler)
 	defer server.Close()

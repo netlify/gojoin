@@ -13,9 +13,11 @@ import (
 type Subscription struct {
 	ID        string `gorm:"unique;primary",json:"id"`
 	Type      string `json:"type"`
-	UserID    string `json:"user_id"`
-	UserEmail string `json:"email"`
-	RemoteID  string `json:"remote_id"`
+
+  User     *User  `json:"user,omitempty"`
+	UserID   string `json:"user_id,omitempty"`
+	
+  RemoteID  string `json:"remote_id"`
 	Plan      string `json:"plan"`
 
 	CreatedAt time.Time  `json:"created_at"`
