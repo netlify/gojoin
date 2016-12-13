@@ -11,17 +11,18 @@ import (
 )
 
 type Subscription struct {
-	ID   string `gorm:"unique;primary"`
-	Type string
+	ID   string `gorm:"unique;primary",json:"id"`
+	Type string `json:"type"`
 
-	User     *User  `json:"user,omitempty"`
-	UserID   string `json:"user_id,omitempty"`
-	RemoteID string
-	Plan     string
+	User   *User  `json:"user,omitempty"`
+	UserID string `json:"user_id,omitempty"`
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
+	RemoteID string `json:"remote_id"`
+	Plan     string `json:"plan"`
+
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"-"`
 }
 
 func (s *Subscription) BeforeCreate(scope *gorm.Scope) error {
