@@ -18,9 +18,9 @@ type Subscription struct {
 	RemoteID  string `json:"-"`
 	Plan      string `json:"plan"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	DeletedAt *time.Time
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"-"`
 }
 
 func (s *Subscription) BeforeCreate(scope *gorm.Scope) error {
