@@ -15,7 +15,7 @@ type Subscription struct {
 	Type      string `json:"type"`
 	UserID    string `json:"user_id"`
 	UserEmail string `json:"email"`
-	RemoteID  string `json:"-"`
+	RemoteID  string `json:"remote_id"`
 	Plan      string `json:"plan"`
 
 	CreatedAt time.Time  `json:"created_at"`
