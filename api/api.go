@@ -15,7 +15,7 @@ import (
 	"github.com/rs/cors"
 
 	"github.com/jinzhu/gorm"
-	"github.com/netlify/netlify-subscriptions/conf"
+	"github.com/netlify/gojoin/conf"
 	"github.com/zenazn/goji/web/mutil"
 )
 
@@ -168,7 +168,7 @@ func extractToken(secret string, r *http.Request) (*jwt.Token, *HTTPError) {
 func (a *API) hello(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	sendJSON(w, http.StatusOK, map[string]string{
 		"version":     a.version,
-		"application": "netlify-subscriptions",
+		"application": "gojoin",
 	})
 }
 

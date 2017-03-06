@@ -37,7 +37,7 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 		return nil, err
 	}
 
-	viper.SetEnvPrefix("NETLIFY_SUBSCRIPTIONS")
+	viper.SetEnvPrefix("GOJOIN")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
@@ -46,7 +46,7 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 	} else {
 		viper.SetConfigName("config")
 		viper.AddConfigPath("./")
-		viper.AddConfigPath("$HOME/.netlify-subscriptions/")
+		viper.AddConfigPath("$HOME/.gojoin/")
 	}
 
 	if err := viper.ReadInConfig(); err != nil && !os.IsNotExist(err) {

@@ -17,8 +17,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/netlify/netlify-subscriptions/conf"
-	"github.com/netlify/netlify-subscriptions/models"
+	"github.com/netlify/gojoin/conf"
+	"github.com/netlify/gojoin/models"
 )
 
 var db *gorm.DB

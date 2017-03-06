@@ -5,9 +5,9 @@ import (
 
 	"os"
 
-	"github.com/netlify/netlify-subscriptions/api"
-	"github.com/netlify/netlify-subscriptions/conf"
-	"github.com/netlify/netlify-subscriptions/models"
+	"github.com/netlify/gojoin/api"
+	"github.com/netlify/gojoin/conf"
+	"github.com/netlify/gojoin/models"
 	"github.com/spf13/cobra"
 	"github.com/stripe/stripe-go"
 )

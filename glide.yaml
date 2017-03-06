@@ -1,4 +1,4 @@
-package: github.com/netlify/netlify-subscriptions
+package: github.com/netlify/gojoin
 import:
 - package: github.com/Sirupsen/logrus
   version: v0.10.0

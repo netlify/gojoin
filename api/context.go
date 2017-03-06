@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/netlify/netlify-subscriptions/conf"
+	"github.com/netlify/gojoin/conf"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"

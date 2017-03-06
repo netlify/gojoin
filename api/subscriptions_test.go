@@ -7,7 +7,7 @@ import (
 
 	"net/http"
 
-	"github.com/netlify/netlify-subscriptions/models"
+	"github.com/netlify/gojoin/models"
 	"github.com/pborman/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
