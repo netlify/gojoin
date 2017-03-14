@@ -74,7 +74,7 @@ func NewAPI(config *conf.Config, db *gorm.DB, proxy payerProxy, version string) 
 
 func (a *API) Serve() error {
 	l := fmt.Sprintf(":%d", a.port)
-	a.log.Infof("Netlify Subscriptions API started on: %s", l)
+	a.log.Infof("GoJoin API started on: %s", l)
 	return http.ListenAndServe(l, a.handler)
 }
 
