@@ -1,8 +1,8 @@
 FROM calavera/go-glide:v0.12.2
 
-ADD . /go/src/github.com/netlify/netlify-subscriptions
+ADD . /go/src/github.com/netlify/gojoin
 
-RUN useradd -m netlify && cd /go/src/github.com/netlify/netlify-subscriptions && make deps build && mv netlify-subscriptions /usr/local/bin/
+RUN useradd -m netlify && cd /go/src/github.com/netlify/gojoin && make deps build && mv gojoin /usr/local/bin/
 
 USER netlify
-CMD ["netlify-subscriptions"]
+CMD ["gojoin"]

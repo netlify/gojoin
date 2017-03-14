@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/netlify/netlify-subscriptions/cmd"
+	"github.com/netlify/gojoin/cmd"
 )
 
 func main() {

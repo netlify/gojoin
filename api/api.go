@@ -15,7 +15,7 @@ import (
 	"github.com/rs/cors"
 
 	"github.com/jinzhu/gorm"
-	"github.com/netlify/netlify-subscriptions/conf"
+	"github.com/netlify/gojoin/conf"
 	"github.com/zenazn/goji/web/mutil"
 )
 
@@ -74,7 +74,7 @@ func NewAPI(config *conf.Config, db *gorm.DB, proxy payerProxy, version string) 
 
 func (a *API) Serve() error {
 	l := fmt.Sprintf(":%d", a.port)
-	a.log.Infof("Netlify Subscriptions API started on: %s", l)
+	a.log.Infof("GoJoin API started on: %s", l)
 	return http.ListenAndServe(l, a.handler)
 }
 
@@ -168,7 +168,7 @@ func extractToken(secret string, r *http.Request) (*jwt.Token, *HTTPError) {
 func (a *API) hello(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	sendJSON(w, http.StatusOK, map[string]string{
 		"version":     a.version,
-		"application": "netlify-subscriptions",
+		"application": "gojoin",
 	})
 }
 

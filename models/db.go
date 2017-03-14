@@ -8,7 +8,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"github.com/netlify/netlify-subscriptions/conf"
+	"github.com/netlify/gojoin/conf"
 )
 
 // Namespace puts all tables names under a common

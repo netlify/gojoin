@@ -1,4 +1,4 @@
-# netlify-subscriptions
+# GoJoin
 
 This acts as a proxy to stripe. It exposes a very simple way to call stripe's subscription endpoints.
 
