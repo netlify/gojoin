@@ -64,23 +64,26 @@ func listSubs(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		Subscriptions: subs,
 	}
 
-	// now we update the token
-	exists := make(map[string]bool)
-	for _, g := range claims.Groups {
-		exists[g] = true
+	claimsMap := getClaimsAsMap(ctx)
+	app_metadata, ok := claimsMap["app_metadata"]
+	var metadata map[string]interface{}
+	if ok {
+		metadata = app_metadata.(map[string]interface{})
+	} else {
+		metadata = map[string]interface{}{}
+		app_metadata = metadata
 	}
+	subsClaim := map[string]string{}
+	metadata["subscriptions"] = subsClaim
 
 	for _, sub := range subs {
-		group := fmt.Sprintf("subs.%s.%s", sub.Type, sub.Plan)
-		if _, ok := exists[group]; !ok {
-			exists[group] = true
-			claims.Groups = append(claims.Groups, group)
-		}
+		subsClaim[sub.Type] = sub.Plan
 	}
+	claimsMap["app_metadata"] = app_metadata
 
 	// now we need to re-serialize the token
 	config := getConfig(ctx)
-	signed, err := jwt.NewWithClaims(signingMethod, claims).SignedString([]byte(config.JWTSecret))
+	signed, err := jwt.NewWithClaims(signingMethod, claimsMap).SignedString([]byte(config.JWTSecret))
 	if err != nil {
 		log.WithError(err).Warnf("Error while creating new signed token")
 		writeError(w, http.StatusInternalServerError, "Error while creating new signed token")

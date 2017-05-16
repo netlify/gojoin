@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -88,6 +89,26 @@ func getDB(ctx context.Context) *gorm.DB {
 
 func getClaims(ctx context.Context) *JWTClaims {
 	return ctx.Value(tokenKey).(*jwt.Token).Claims.(*JWTClaims)
+}
+
+func getClaimsAsMap(ctx context.Context) jwt.MapClaims {
+	token := ctx.Value(tokenKey).(*jwt.Token)
+	config := getConfig(ctx)
+	if config == nil {
+		return nil
+	}
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(token.Raw, &claims, func(token *jwt.Token) (interface{}, error) {
+		if token.Header["alg"] != jwt.SigningMethodHS256.Name {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(config.JWTSecret), nil
+	})
+	if err != nil {
+		return nil
+	}
+
+	return claims
 }
 
 func setToken(ctx context.Context, token *jwt.Token) context.Context {
