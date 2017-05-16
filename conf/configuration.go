@@ -49,8 +49,11 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 		viper.AddConfigPath("$HOME/.gojoin/")
 	}
 
-	if err := viper.ReadInConfig(); err != nil && !os.IsNotExist(err) {
-		return nil, errors.Wrap(err, "reading configuration from files")
+	if err := viper.ReadInConfig(); err != nil {
+		_, ok := err.(viper.ConfigFileNotFoundError)
+		if !ok {
+			return nil, errors.Wrap(err, "reading configuration from files")
+		}
 	}
 
 	config := new(Config)
