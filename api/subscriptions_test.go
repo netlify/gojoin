@@ -40,36 +40,22 @@ func TestQueryForAllSubsAsUser(t *testing.T) {
 	assert.NotEmpty(t, body.Token)
 	claims := decodeToken(t, body.Token, config.JWTSecret)
 	if assert.NotNil(t, claims) {
-		assert.Equal(t, 2, len(claims.Groups))
-		for _, g := range claims.Groups {
-			switch g {
-			case "subs.membership.nonsense":
-			case "subs.revenue.more-nonsense":
-			default:
-				assert.Fail(t, "unexpected group: "+g)
-			}
+		meta, ok := claims["app_metadata"].(map[string]interface{})
+		if !ok {
+			assert.Fail(t, "No app_metadata in token")
 		}
+		subs, ok := meta["subscriptions"]
+		if !ok {
+			assert.Fail(t, "No subscriptions in metadata")
+		}
+
+		subsMap, ok := subs.(map[string]interface{})
+		if !ok {
+			assert.Fail(t, "Subscriptions is not a map")
+		}
+		assert.Equal(t, "nonsense", subsMap["membership"])
+		assert.Equal(t, "more-nonsense", subsMap["revenue"])
 	}
-}
-
-func TestQueryForAllUsersNoNewGroups(t *testing.T) {
-	tu := createUser(testUserID, testUserEmail, "stripe-given-value")
-	s1 := createSubscription(testUserID, "pokemon", "pikachu")
-	defer cleanup(s1, tu)
-
-	tokenString := testTokenWithGroups(t, testUserID, testUserEmail, config.JWTSecret, false, []string{"something", "subs.pokemon.pikachu"})
-	r, _ := http.NewRequest("GET", serverURL+"/subscriptions", nil)
-	r.Header.Add("Authorization", "Bearer "+tokenString)
-
-	rsp, err := client.Do(r)
-	if !assert.NoError(t, err) {
-		assert.FailNow(t, "failed to make request: "+r.URL.String())
-	}
-
-	body := new(getAllResponse)
-	extractPayload(t, rsp, &body)
-
-	assert.Equal(t, tokenString, body.Token)
 }
 
 func TestQueryForSingleSubAsUser(t *testing.T) {

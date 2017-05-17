@@ -230,15 +230,16 @@ func testTokenWithGroups(t *testing.T, name, email, secret string, isAdmin bool,
 	return tokenString
 }
 
-func decodeToken(t *testing.T, jwtString, secret string) *JWTClaims {
-	token, err := jwt.ParseWithClaims(jwtString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+func decodeToken(t *testing.T, jwtString, secret string) jwt.MapClaims {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(jwtString, &claims, func(token *jwt.Token) (interface{}, error) {
 		if assert.Equal(t, token.Header["alg"], signingMethod.Name) {
 			return []byte(secret), nil
 		}
 		return nil, nil
 	})
 	if assert.NoError(t, err) {
-		return token.Claims.(*JWTClaims)
+		return claims
 	}
 	return nil
 }
