@@ -8,22 +8,11 @@ Please make sure you understand its [implications and guarantees](https://writin
 ## authentication
 All of the endpoints rely on a JWT token. We will use the user ID set in that token for the user information to Stripe.
 
-It relies on a JWTClaims that has these extra fields:
-
-``` json
-{
-    "groups": [],
-    "id": "",
-    "email": ""
-}
-```
-
 The API as is:
 
     GET /subscriptions -- list all the subscriptions for the user
 
-This endpoint will return a list of subscriptions, but also a JWT token with the memberships added to the 'groups'
-in the format: 'subs.<type>.<plan>'
+This endpoint will return a list of subscriptions, but also a JWT token that has been decorated with an `app_metadata.subscriptions` property which is a map of the users subscriptions.
 
 These endpoints are all grouped by a `type` of subscription. For instance if you have a `membership` type with
 plan levels gold, silver, and bronze.
