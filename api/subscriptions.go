@@ -67,7 +67,7 @@ func listSubs(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	claimsMap := getClaimsAsMap(ctx)
 	app_metadata, ok := claimsMap["app_metadata"]
 	var metadata map[string]interface{}
-	if ok {
+	if ok && app_metadata != nil {
 		metadata = app_metadata.(map[string]interface{})
 	} else {
 		metadata = map[string]interface{}{}
