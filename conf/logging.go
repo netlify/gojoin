@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // LoggingConfig specifies all the parameters needed for logging

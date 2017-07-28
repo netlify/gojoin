@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/guregu/kami"
 	"github.com/netlify/gojoin/models"
 	"gopkg.in/square/go-jose.v1/json"
