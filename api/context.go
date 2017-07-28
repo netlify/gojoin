@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/netlify/gojoin/conf"
 
 	"github.com/dgrijalva/jwt-go"

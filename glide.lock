@@ -1,5 +1,5 @@
-hash: 82b067090443e86710d757d645c8bd4d63b49b54e87a1b66f1f50b8462d913fa
-updated: 2017-03-06T13:31:15.472337897-08:00
+hash: b95e2f65098f25b21f5f94b1aecaef84ba115c24eb7b013656e597cc195a69ed
+updated: 2017-07-28T16:18:17.301657768-04:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
@@ -22,10 +22,10 @@ imports:
   subpackages:
   - hcl/ast
   - hcl/parser
-  - hcl/token
-  - json/parser
   - hcl/scanner
   - hcl/strconv
+  - hcl/token
+  - json/parser
   - json/scanner
   - json/token
 - name: github.com/inconshreveable/mousetrap
@@ -56,8 +56,8 @@ imports:
   version: a62a804a8a009876ca59105f7899938a1349f4b3
 - name: github.com/rs/xhandler
   version: ed27b6fd65218132ee50cd95f38474a3d8a2cd12
-- name: github.com/Sirupsen/logrus
-  version: 4b6ea7319e214d98c938f12692336f7ca9348d6b
+- name: github.com/sirupsen/logrus
+  version: a3f95b5c423586578a4e099b11a46c2479628cac
 - name: github.com/spf13/afero
   version: 9be650865eab0c12963d8753212f4f9c66cdcf12
   subpackages:
@@ -80,8 +80,8 @@ imports:
   version: fd0493806620259f607f131587fa2bf1cfdc5218
   subpackages:
   - customer
-  - sub
   - orderitem
+  - sub
 - name: github.com/valyala/fasthttp
   version: d42167fd04f636e20b005e9934159e95454233c7
   subpackages:
@@ -89,10 +89,10 @@ imports:
 - name: github.com/zenazn/goji
   version: 4d7077956293261309684d3cf1af673f773c6819
   subpackages:
-  - web/mutil
   - bind
   - graceful
   - graceful/listener
+  - web/mutil
 - name: golang.org/x/net
   version: d379faa25cbdc04d653984913a2ceb43b0bc46d7
   subpackages:
@@ -111,10 +111,10 @@ imports:
   subpackages:
   - internal
   - internal/app_identity
-  - internal/modules
   - internal/base
   - internal/datastore
   - internal/log
+  - internal/modules
   - internal/remote_api
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
