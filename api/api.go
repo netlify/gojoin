@@ -8,11 +8,11 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/guregu/kami"
 	"github.com/pborman/uuid"
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/jinzhu/gorm"
 	"github.com/netlify/gojoin/conf"
@@ -119,6 +119,12 @@ func (a *API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http
 	}
 
 	claims := token.Claims.(*JWTClaims)
+	if claims.ID == "" {
+		log.Info("JWT token did not contain an id")
+		writeError(w, http.StatusBadRequest, "JWT Token must contain an id")
+		return nil
+	}
+
 	adminFlag := false
 	for _, g := range claims.Groups {
 		if g == a.config.AdminGroupName {
