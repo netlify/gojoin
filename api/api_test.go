@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/netlify/gojoin/conf"
@@ -75,7 +75,7 @@ func TestTokenExtraction(t *testing.T) {
 	if assert.NotNil(t, token) {
 		assert.Nil(t, token.Claims.Valid())
 		outClaims := token.Claims.(*JWTClaims)
-		assert.Equal(t, "joker", outClaims.ID)
+		assert.Equal(t, "joker", outClaims.Subject)
 
 		foundAdmin := false
 		for _, g := range outClaims.Groups {
@@ -210,7 +210,9 @@ func testToken(t *testing.T, name, email, secret string, isAdmin bool) string {
 
 func testTokenWithGroups(t *testing.T, name, email, secret string, isAdmin bool, groups []string) string {
 	claims := &JWTClaims{
-		ID:    name,
+		StandardClaims: jwt.StandardClaims{
+			Subject: name,
+		},
 		Email: email,
 	}
 	claims.ExpiresAt = time.Now().Add(time.Hour).Unix()
