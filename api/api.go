@@ -8,11 +8,11 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/guregu/kami"
 	"github.com/pborman/uuid"
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/jinzhu/gorm"
 	"github.com/netlify/gojoin/conf"
@@ -31,7 +31,6 @@ type API struct {
 
 type JWTClaims struct {
 	jwt.StandardClaims
-	ID     string   `json:"id"`
 	Email  string   `json:"email"`
 	Groups []string `json:"groups"`
 }
@@ -128,7 +127,7 @@ func (a *API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	log = log.WithFields(logrus.Fields{
 		"is_admin": adminFlag,
-		"user_id":  claims.ID,
+		"user_id":  claims.Id,
 	})
 	ctx = setAdminFlag(ctx, adminFlag)
 	ctx = setToken(ctx, token)

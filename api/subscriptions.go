@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/guregu/kami"
 	"github.com/netlify/gojoin/models"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/square/go-jose.v1/json"
 )
 
@@ -48,17 +48,17 @@ func listSubs(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	db := getDB(ctx)
 
 	subs := []models.Subscription{}
-	if rsp := db.Where("user_id = ? ", claims.ID).Find(&subs); rsp.Error != nil {
+	if rsp := db.Where("user_id = ? ", claims.Id).Find(&subs); rsp.Error != nil {
 		if rsp.RecordNotFound() {
-			notFoundError(w, "Found no records associated with user id %s", claims.ID)
+			notFoundError(w, "Found no records associated with user id %s", claims.Id)
 		} else {
-			log.WithError(rsp.Error).Warnf("Failed to find records associated with %s", claims.ID)
+			log.WithError(rsp.Error).Warnf("Failed to find records associated with %s", claims.Id)
 			writeError(w, http.StatusInternalServerError, "DB error while searching for subscriptions")
 		}
 		return
 	}
 
-	log.Debugf("Found %d subscriptions associated with id %s", len(subs), claims.ID)
+	log.Debugf("Found %d subscriptions associated with id %s", len(subs), claims.Id)
 
 	response := &getAllResponse{
 		Subscriptions: subs,
@@ -96,7 +96,7 @@ func listSubs(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 func viewSub(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	subType := kami.Param(ctx, "type")
 	claims := getClaims(ctx)
-	sub, err := getSubscription(ctx, claims.ID, subType)
+	sub, err := getSubscription(ctx, claims.Id, subType)
 	if err != nil {
 		sendJSON(w, err.Code, err)
 	}
@@ -111,7 +111,7 @@ func viewSub(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 func deleteSub(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	subType := kami.Param(ctx, "type")
 	claims := getClaims(ctx)
-	sub, err := getSubscription(ctx, claims.ID, subType)
+	sub, err := getSubscription(ctx, claims.Id, subType)
 	if err != nil {
 		sendJSON(w, err.Code, err)
 	}
@@ -156,7 +156,7 @@ func createOrModSub(ctx context.Context, w http.ResponseWriter, r *http.Request)
 
 	// do we have a subscription already?
 	claims := getClaims(ctx)
-	sub, httpErr := getSubscription(ctx, claims.ID, subType)
+	sub, httpErr := getSubscription(ctx, claims.Id, subType)
 	if httpErr != nil {
 		sendJSON(w, httpErr.Code, httpErr)
 		return
@@ -186,11 +186,11 @@ func createSub(ctx context.Context, subType string, payload *subscriptionRequest
 
 	// do we have a user?
 	user := &models.User{
-		ID: claims.ID,
+		ID: claims.Id,
 	}
 	if rsp := db.Where(user).Find(user); rsp.Error != nil {
 		if rsp.RecordNotFound() {
-			remoteID, err := pp.createCustomer(claims.ID, claims.Email, payload.StripeKey)
+			remoteID, err := pp.createCustomer(claims.Id, claims.Email, payload.StripeKey)
 			if err != nil {
 				return nil, httpError(http.StatusInternalServerError, "Failed to create new customer in stripe")
 			}
