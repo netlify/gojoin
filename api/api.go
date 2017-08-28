@@ -31,7 +31,6 @@ type API struct {
 
 type JWTClaims struct {
 	jwt.StandardClaims
-	ID     string   `json:"id"`
 	Email  string   `json:"email"`
 	Groups []string `json:"groups"`
 }
@@ -119,9 +118,9 @@ func (a *API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http
 	}
 
 	claims := token.Claims.(*JWTClaims)
-	if claims.ID == "" {
-		log.Info("JWT token did not contain an id")
-		writeError(w, http.StatusBadRequest, "JWT Token must contain an id")
+	if claims.Subject == "" {
+		log.Info("JWT token did not contain a sub")
+		writeError(w, http.StatusBadRequest, "JWT Token must contain a sub")
 		return nil
 	}
 
@@ -134,7 +133,7 @@ func (a *API) populateConfig(ctx context.Context, w http.ResponseWriter, r *http
 	}
 	log = log.WithFields(logrus.Fields{
 		"is_admin": adminFlag,
-		"user_id":  claims.ID,
+		"user_id":  claims.Subject,
 	})
 	ctx = setAdminFlag(ctx, adminFlag)
 	ctx = setToken(ctx, token)
